@@ -1,0 +1,20 @@
+# Core dependencies
+flask==3.0.0
+flask-cors==4.0.0
+python-dotenv==1.0.0
+
+# Fetch AI SDK
+fetch-ai==0.3.0
+
+# LangChain and LangGraph
+langchain==0.1.0
+langchain-core==0.1.8
+langchain-anthropic==0.0.4
+langgraph==0.0.15
+
+# OpenAI (if using for dynamic payload creation)
+openai==1.3.5
+
+# Other utilities
+requests==2.31.0
+python-dateutil==2.8.2
