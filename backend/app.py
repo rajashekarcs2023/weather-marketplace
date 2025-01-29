@@ -1,22 +1,24 @@
+import os
+import logging
+import asyncio
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from fetchai.crypto import Identity
 from fetchai.registration import register_with_agentverse
 from fetchai.communication import parse_message_from_agent, send_message_to_agent
 from fetchai import fetch
-import logging
-import os
-import threading
-import time
-import json
 from dotenv import load_dotenv
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-app = Flask(__name__)
+# Load environment variables
+load_dotenv()
 
-CORS(app, supports_credentials=True, resources={
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Flask app and CORS setup
+flask_app = Flask(__name__)
+CORS(flask_app, supports_credentials=True, resources={
     r"/*": {
         "origins": ["http://localhost:3000"],
         "methods": ["GET", "POST", "OPTIONS"],
@@ -25,75 +27,46 @@ CORS(app, supports_credentials=True, resources={
     }
 })
 
+# Global variables
 client_identity = None
 weather_response = None
 responses_received = 0
 
-def init_client():
-    """Initialize and register the client agent"""
-    global client_identity
-    try:
-        client_identity = Identity.from_seed(os.getenv("CLIENT_KEY3"), 0)
-        logger.info(f"Client agent started with address: {client_identity.address}")
-        
-        readme = """
-        <description>Frontend client that requests weather information</description>
-        <use_cases>
-            <use_case>Receive and display weather reports</use_case>
-        </use_cases>
-        <payload_requirements>
-            <description>Expects weather information responses</description>
-            <payload>
-                <requirement>
-                    <parameter>location</parameter>
-                    <description>The location of the weather report</description>
-                </requirement>
-            </payload>
-        </payload_requirements>
-        """
-        
-        register_with_agentverse(
-            identity=client_identity,
-            url="http://localhost:5001/api/webhook",
-            agentverse_token=os.getenv("AGENTVERSE_API_KEY"),
-            agent_title="Weather Frontend Client",
-            readme=readme
-        )
-        
-        logger.info("Client agent registration complete!")
-        
-    except Exception as e:
-        logger.error(f"Initialization error: {e}")
-        raise
+async def search_weather_agents():
+    """Search for available weather agents"""
+    available_ais = fetch.ai("weather forecast analysis recommendations")
+    agents = available_ais.get('ais', [])
+    
+    weather_agents = []
+    logger.info("\nAvailable Weather Agents:")
+    
+    for agent in agents:
+        if "weather" in agent.get('name', '').lower():
+            readme = agent.get('readme', '')
+            try:
+                price_start = readme.index('<price>') + 7
+                price_end = readme.index('</price>')
+                price = float(readme[price_start:price_end])
+                
+                agent_info = {
+                    "name": agent.get('name'),
+                    "price": price,
+                    "address": agent.get('address')
+                }
+                weather_agents.append(agent_info)
+                logger.info(f"Found agent: {agent_info}")
+            except (ValueError, IndexError):
+                continue
+    
+    return weather_agents
 
-@app.route('/api/search-agents')
-def search_agents():
+# API Routes
+@flask_app.route('/api/search-agents')
+async def search_agents():
     """Search for available weather agents"""
     try:
         logger.info("Searching for weather agents...")
-        available_ais = fetch.ai("weather forecast analysis recommendations")
-        agents = available_ais.get('agents', [])
-        
-        weather_agents = []
-        logger.info("\nAvailable Weather Agents:")
-        
-        for agent in agents:
-            if "weather" in agent.get('name', '').lower():
-                readme = agent.get('readme', '')
-                try:
-                    price_start = readme.index('<price>') + 7
-                    price_end = readme.index('</price>')
-                    price = float(readme[price_start:price_end])
-                    
-                    agent_info = {
-                        "name": agent.get('name'),
-                        "price": price,
-                        "address": agent.get('address')
-                    }
-                    weather_agents.append(agent_info)
-                    logger.info(f"Found agent: {agent_info}")
-                except (ValueError, IndexError):
-                    continue
+        weather_agents = await search_weather_agents()
         
         if not weather_agents:
             logger.error("No weather agents found")
@@ -105,8 +78,8 @@ def search_agents():
         logger.error(f"Error finding agents: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/get-weather', methods=['POST'])
-def get_weather():
+@flask_app.route('/api/get-weather', methods=['POST'])
+async def get_weather():
     """Send weather request to selected agent"""
     global weather_response
     weather_response = None
@@ -134,8 +107,8 @@ def get_weather():
         logger.error(f"Error sending weather request: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/get-weather-response')
-def get_weather_response():
+@flask_app.route('/api/get-weather-response')
+async def get_weather_response():
     """Get the most recent weather response"""
     global weather_response
     try:
@@ -148,8 +121,8 @@ def get_weather_response():
         logger.error(f"Error getting weather response: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/webhook', methods=['POST'])
-def webhook():
+@flask_app.route('/api/webhook', methods=['POST'])
+async def webhook():
     """Handle incoming messages from weather agents"""
     global weather_response, responses_received
     try:
@@ -167,15 +140,42 @@ def webhook():
         logger.error(f"Error in webhook: {e}")
         return jsonify({"error": str(e)}), 500
 
-def start_server():
-    """Start the Flask server"""
+# Initialize the agent
+def init_agent():
+    global client_identity
     try:
-        load_dotenv()
-        init_client()
-        app.run(host="0.0.0.0", port=5001)
+        client_identity = Identity.from_seed(os.getenv("FRONTEND_CLIENT_KEY"), 0)
+        
+        register_with_agentverse(
+            identity=client_identity,
+            url="http://localhost:5001/api/webhook",
+            agentverse_token=os.getenv("AGENTVERSE_API_KEY"),
+            agent_title="Weather Frontend Client",
+            readme="""
+            <description>Frontend client that requests weather information</description>
+            <use_cases>
+                <use_case>Receive and display weather reports</use_case>
+            </use_cases>
+            <payload_requirements>
+                <description>Expects weather information responses</description>
+                <payload>
+                    <requirement>
+                        <parameter>location</parameter>
+                        <description>The location of the weather report</description>
+                    </requirement>
+                </payload>
+            </payload_requirements>
+            """
+        )
+        
+        logger.info(f"Client agent started with address: {client_identity.address}")
+        logger.info("Client agent registration complete!")
+        
     except Exception as e:
-        logger.error(f"Server error: {e}")
+        logger.error(f"Error initializing agent: {e}")
         raise
 
+# Run Flask server
 if __name__ == "__main__":
-    start_server()
+    init_agent()
+    flask_app.run(host="0.0.0.0", port=5001, debug=True)
