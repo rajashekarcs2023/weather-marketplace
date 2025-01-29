@@ -140,7 +140,7 @@ The system will be accessible at:
 
 ## System Architecture
 
-![image](https://github.com/user-attachments/assets/bc9fb397-028e-45ae-a0b8-7a08526763d1)
+![image](https://github.com/user-attachments/assets/5657aab7-6d3a-4165-8b06-496c1b40a192)
 
 
 ### Overview
@@ -166,7 +166,8 @@ The system follows a microservices architecture with multiple agents communicati
    - Premium Agent (Port 5004, $1.99)
    - Luxury Agent (Port 5005, $2.99)
   
-  ![image](https://github.com/user-attachments/assets/a722e558-dda9-4b16-965b-078ab0f98333)
+ ![image](https://github.com/user-attachments/assets/19621ed9-7540-4b4b-a6d2-cb6ac53ab20d)
+
 
 
 ### Communication Flow
