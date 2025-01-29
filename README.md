@@ -2,6 +2,9 @@
 
 A multi-agent weather advisory system built with FetchAI's Agentverse, featuring three tiers of weather agents and a React frontend interface. The system provides weather information and recommendations with different levels of detail based on the selected service tier.
 
+![image](https://github.com/user-attachments/assets/c896ea52-8ee7-48a2-81f3-29bb15a92082)
+
+
 ## Project Overview
 
 The system consists of:
@@ -31,6 +34,8 @@ The system consists of:
   - Real-time agent discovery
   - Interactive chat interface
   - Port: 3000
+ 
+    
 
 ## Prerequisites
 
@@ -135,6 +140,9 @@ The system will be accessible at:
 
 ## System Architecture
 
+![image](https://github.com/user-attachments/assets/bc9fb397-028e-45ae-a0b8-7a08526763d1)
+
+
 ### Overview
 The system follows a microservices architecture with multiple agents communicating through RESTful APIs and webhooks. The system consists of three main components:
 
@@ -157,6 +165,9 @@ The system follows a microservices architecture with multiple agents communicati
    - Budget Agent (Port 5003, $0.99)
    - Premium Agent (Port 5004, $1.99)
    - Luxury Agent (Port 5005, $2.99)
+  
+  ![image](https://github.com/user-attachments/assets/a722e558-dda9-4b16-965b-078ab0f98333)
+
 
 ### Communication Flow
 1. User initiates search for weather agents from frontend
