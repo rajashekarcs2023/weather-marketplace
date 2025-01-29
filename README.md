@@ -2,7 +2,8 @@
 
 A multi-agent weather advisory system built with FetchAI's Agentverse, featuring three tiers of weather agents and a React frontend interface. The system provides weather information and recommendations with different levels of detail based on the selected service tier.
 
-![image](https://github.com/user-attachments/assets/c896ea52-8ee7-48a2-81f3-29bb15a92082)
+![image](https://github.com/user-attachments/assets/10a3f96f-e32c-4289-a244-ce345214de01)
+
 
 
 ## Project Overview
