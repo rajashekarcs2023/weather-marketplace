@@ -47,7 +47,7 @@ project/
 │   ├── budget_weather.py
 │   ├── premium_weather.py
 │   ├── luxury_weather.py
-│   ├── client_agent.py
+│   ├── app.py
 │   └── .env
 ├── frontend/
 │   ├── src/
@@ -101,7 +101,7 @@ python luxury_weather.py
 2. Start the client agent:
 ```bash
 # Terminal 4
-python client_agent.py
+python app.py
 ```
 
 3. Start the frontend:
